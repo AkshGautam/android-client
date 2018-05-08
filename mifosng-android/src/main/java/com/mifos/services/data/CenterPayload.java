@@ -4,6 +4,7 @@
  */
 package com.mifos.services.data;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -13,13 +14,14 @@ import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.structure.provider.BaseSyncableProviderModel;
 
 /**
  * Created by nellyk on 1/22/2016.
  */
 @Table(database = MifosDatabase.class)
 @ModelContainer
-public class CenterPayload extends MifosBaseModel implements Parcelable {
+public class CenterPayload extends BaseSyncableProviderModel implements Parcelable {
 
     @PrimaryKey(autoincrement = true)
     transient int id;
@@ -151,4 +153,23 @@ public class CenterPayload extends MifosBaseModel implements Parcelable {
             };
 
 
+    @Override
+    public Uri getDeleteUri() {
+        return MifosDatabase.CenterPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getInsertUri() {
+        return MifosDatabase.CenterPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getUpdateUri() {
+        return MifosDatabase.CenterPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getQueryUri() {
+        return MifosDatabase.CenterPayload.CONTENT_URI;
+    }
 }

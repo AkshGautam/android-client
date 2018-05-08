@@ -5,12 +5,16 @@
 
 package com.mifos.mifosxdroid.login;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,6 +30,7 @@ import com.mifos.mifosxdroid.core.util.Toaster;
 import com.mifos.mifosxdroid.online.DashboardActivity;
 import com.mifos.mifosxdroid.passcode.PassCodeActivity;
 import com.mifos.objects.user.User;
+import com.mifos.sync.SyncAdapter;
 import com.mifos.utils.Constants;
 import com.mifos.utils.Network;
 import com.mifos.utils.PrefManager;
@@ -74,6 +79,15 @@ public class LoginActivity extends MifosBaseActivity implements LoginMvpView {
     private String password;
     private String domain;
     private boolean isValidUrl = false;
+    private AccountManager accountManager;
+    public final static String ARG_ACCOUNT_TYPE = "ACCOUNT_TYPE";
+    public final static String ARG_AUTH_TYPE = "AUTH_TYPE";
+    public final static String ARG_ACCOUNT_NAME = "ACCOUNT_NAME";
+    public final static String ARG_IS_ADDING_NEW_ACCOUNT = "IS_ADDING_ACCOUNT";
+    public final static String TOKEN_TYPE="TOKEN_TYPE";
+    private String mAuthTokenType;
+    public final static String PARAM_USER_PASS = "USER_PASS";
+    String accountName;
 
     private TextWatcher urlWatcher = new TextWatcher() {
         @Override
@@ -125,6 +139,30 @@ public class LoginActivity extends MifosBaseActivity implements LoginMvpView {
         et_domain.addTextChangedListener(urlWatcher);
         et_port.addTextChangedListener(urlWatcher);
         urlWatcher.afterTextChanged(null);
+
+
+        accountManager=AccountManager.get(getBaseContext());
+        accountName = getIntent().getStringExtra(ARG_ACCOUNT_NAME);
+        mAuthTokenType = getIntent().getStringExtra(ARG_AUTH_TYPE);
+//        if (TextUtils.isEmpty(accountName)) {
+//            accountName = "mifosxdroid";
+//        }
+
+        if (mAuthTokenType == null)
+            mAuthTokenType = getString(R.string.auth_type);
+//        Log.v("acc name log",accountName+"check");
+        findAccount(accountName);
+
+        System.out.println(mAuthTokenType + ", accountName : " + accountName);
+    }
+
+    public Account findAccount(String accountName) {
+        for (Account account : accountManager.getAccounts())
+            if (TextUtils.equals(account.name, accountName)&& TextUtils.equals(account.type, getString(R.string.auth_type))) {
+                System.out.println("FOUND");
+                return account;
+            }
+        return null;
     }
 
     public boolean validateUserInputs() {
@@ -179,6 +217,39 @@ public class LoginActivity extends MifosBaseActivity implements LoginMvpView {
 
     @Override
     public void onLoginSuccessful(User user) {
+        String password;
+        String token=user.getBase64EncodedAuthenticationKey();
+        String accountType;
+        accountName = "mifos";
+        password = "password";
+        Bundle data = new Bundle();
+        data.putString(AccountManager.KEY_ACCOUNT_NAME, accountName);
+        data.putString(AccountManager.KEY_ACCOUNT_TYPE, mAuthTokenType);
+        data.putString(AccountManager.KEY_AUTHTOKEN, token);
+        data.putString(PARAM_USER_PASS, password);
+        final Account account = new Account(accountName, mAuthTokenType);
+        final Intent res = new Intent();
+        res.putExtras(data);
+        Bundle userData = new Bundle();
+        userData.putString("UserID", "25");
+        data.putBundle(AccountManager.KEY_USERDATA, userData);
+        if (accountManager.addAccountExplicitly(account, password, userData)) {
+            // worked
+            Log.d("message", "Account added");
+            accountManager.setAuthToken(account, mAuthTokenType, token);
+            //Commented out,have to check soon.
+//            setAccountAuthenticatorResult(data);
+            setResult(RESULT_OK, res);
+          //  finish();
+        } else {
+            // guess not
+            Log.d("message", "Account NOT added");
+        }
+        if(findAccount(accountName)!=null) {
+            Log.v("message","null acc");
+        } else {
+            Log.v("message","account present");
+        }
         // Saving userID
         PrefManager.setUserId(user.getUserId());
         // Saving user's token
@@ -196,6 +267,14 @@ public class LoginActivity extends MifosBaseActivity implements LoginMvpView {
             intent.putExtra(Constants.INTIAL_LOGIN, true);
             startActivity(intent);
         }
+
+        Account[] newacc = AccountManager.get(this).getAccountsByType("com.mifos");
+        SyncAdapter.onAccountCreated(newacc[0],this);
+//        Log.v("sizze",Integer.toString(newacc.length));
+//        for(int i=0;i<newacc.length;i++)
+//        {
+//            Log.v("accc",newacc[0]+"acc");
+//        }
         finish();
     }
 

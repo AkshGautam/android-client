@@ -6,20 +6,27 @@
 package com.mifos.mifosxdroid.online.search;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CursorAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.mifos.api.local.MifosDatabase;
 import com.mifos.mifosxdroid.R;
 import com.mifos.mifosxdroid.adapters.SearchAdapter;
 import com.mifos.mifosxdroid.core.MifosBaseActivity;
@@ -30,8 +37,16 @@ import com.mifos.mifosxdroid.online.CentersActivity;
 import com.mifos.mifosxdroid.online.ClientActivity;
 import com.mifos.mifosxdroid.online.GroupsActivity;
 import com.mifos.objects.SearchedEntity;
+import com.mifos.objects.client.ClientPayload;
+import com.mifos.objects.client.ClientPayload_Table;
+import com.mifos.objects.group.Center;
+import com.mifos.services.data.CenterPayload;
+import com.mifos.services.data.CenterPayload_Table;
 import com.mifos.utils.Constants;
 import com.mifos.utils.EspressoIdlingResource;
+import com.raizlabs.android.dbflow.sql.language.ConditionGroup;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
+import com.raizlabs.android.dbflow.structure.provider.ContentUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +83,9 @@ public class SearchFragment extends MifosBaseFragment implements SearchMvpView,
 
     @Inject
     SearchPresenter searchPresenter;
+
+    @BindView(R.id.text_view)
+    TextView listView;
 
     private List<SearchedEntity> searchedEntities;
     private ArrayAdapter<CharSequence> searchOptionsAdapter;
@@ -106,6 +124,24 @@ public class SearchFragment extends MifosBaseFragment implements SearchMvpView,
         rv_search.addOnItemTouchListener(new RecyclerItemClickListener(getActivity(), this));
         rv_search.setHasFixedSize(true);
         rv_search.setAdapter(searchAdapter);
+//        Cursor elementsCursor = ContentUtils.query(getActivity().getContentResolver(),
+//                MifosDatabase.CenterPayload.CONTENT_URI,
+//                ConditionGroup.clause().and(CenterPayload_Table.name.isNotNull()),
+//                null, new String[]{"name"});
+//        elementsCursor.moveToFirst();
+//        while(elementsCursor.moveToNext()) {
+//            Log.v("valaa", elementsCursor.getString(elementsCursor.getColumnIndex("name"))
+//                    + "saaa");
+//            elementsCursor.moveToNext();
+//        }
+//        Log.v("completed","loop ended");
+////        CursorAdapter cursorAdapter = new SimpleCursorAdapter(getContext(), android.R.layout.simple_list_item_1,
+////                elementsCursor, new String[]{"firstname"}, new int[]{android.R.id.text1});
+////        listView.setAdapter(cursorAdapter);
+//        List<CenterPayload> clientPayloadList = SQLite.select().from(CenterPayload.class).queryList();
+//        for (int i=0;i<clientPayloadList.size();i++) {
+//            Log.v("payload", clientPayloadList.get(i).getName());
+//        }
     }
 
 

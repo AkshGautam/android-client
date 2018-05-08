@@ -5,6 +5,10 @@
 
 package com.mifos.mifosxdroid.online;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +21,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.SwitchCompat;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -63,6 +68,7 @@ public class DashboardActivity extends MifosBaseActivity
     SwitchCompat userStatusToggle;
     private Menu menu;
     private boolean doubleBackToExitPressedOnce = false;
+    private AccountManager mAccountManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -79,6 +85,8 @@ public class DashboardActivity extends MifosBaseActivity
         //addOnBackStackChangedListener
         //to change title after Back Stack Changed
         addOnBackStackChangedListener();
+        mAccountManager = AccountManager.get(this);
+       // syncImmediately(this);
     }
 
     private void addOnBackStackChangedListener() {
@@ -359,6 +367,30 @@ public class DashboardActivity extends MifosBaseActivity
     public IdlingResource getCountingIdlingResource() {
         return EspressoIdlingResource.getIdlingResource();
     }
+//    public static void syncImmediately(Context context) {
+//        Bundle bundle = new Bundle();
+//        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+//        bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+//        ContentResolver.requestSync(getSyncAccount(context),
+//                "com.mifos.provider", bundle);
+//    }
+
+//    public static Account getSyncAccount(Context context) {
+//        AccountManager accountManager =
+//                (AccountManager) context.getSystemService(Context.ACCOUNT_SERVICE);
+//
+//        // Create the account type and default account
+////        Account newAccount = new Account(
+////                context.getString(R.string.app_name), context.getString(R.string.sync_account_type));
+//    }
+//public Account findAccount(String accountName) {
+//    for (Account account : mAccountManager.getAccounts())
+//        if (TextUtils.equals(account.name, accountName) && TextUtils.equals(account.type, getString(R.string.auth_type))) {
+//            System.out.println("FOUND");
+//            return account;
+//        }
+//    return null;
+//}
 }
 
 

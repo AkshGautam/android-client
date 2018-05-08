@@ -4,6 +4,7 @@ package com.mifos.objects.client;
  * See https://github.com/openMF/android-client/blob/master/LICENSE.md
  */
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -15,6 +16,7 @@ import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.ModelContainer;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.structure.provider.BaseSyncableProviderModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,7 @@ import java.util.List;
  */
 @Table(database = MifosDatabase.class)
 @ModelContainer
-public class ClientPayload extends MifosBaseModel implements Parcelable {
+public class ClientPayload extends BaseSyncableProviderModel implements Parcelable {
 
     @PrimaryKey(autoincrement = true)
     transient Integer id;
@@ -359,5 +361,25 @@ public class ClientPayload extends MifosBaseModel implements Parcelable {
             return new ClientPayload[size];
         }
     };
+
+    @Override
+    public Uri getDeleteUri() {
+        return MifosDatabase.ClientPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getInsertUri() {
+        return MifosDatabase.ClientPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getUpdateUri() {
+        return MifosDatabase.ClientPayload.CONTENT_URI;
+    }
+
+    @Override
+    public Uri getQueryUri() {
+        return MifosDatabase.ClientPayload.CONTENT_URI;
+    }
 }
 
