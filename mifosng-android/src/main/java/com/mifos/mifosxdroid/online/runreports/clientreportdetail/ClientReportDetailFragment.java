@@ -10,6 +10,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TableLayout;
@@ -60,6 +61,9 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     private View rootView;
     private ClientReportTypeItem reportItem;
 
+    private boolean fetchLoanOfficer = false;
+    private boolean fetchLoanProduct = false;
+
     private HashMap<String, Integer> fundMap;
     private HashMap<String, Integer> loanOfficerMap;
     private HashMap<String, Integer> loanProductMap;
@@ -67,7 +71,8 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     private HashMap<String, Integer> officeMap;
     private HashMap<String, String> currencyMap;
 
-    public ClientReportDetailFragment() {}
+    public ClientReportDetailFragment() {
+    }
 
     public static ClientReportDetailFragment newInstance(Bundle args) {
         ClientReportDetailFragment fragment = new ClientReportDetailFragment();
@@ -117,7 +122,7 @@ public class ClientReportDetailFragment extends MifosBaseFragment
         TextView tvLabel = new TextView(getContext());
         row.addView(tvLabel);
 
-        Spinner spinner = new Spinner(getContext());
+        final Spinner spinner = new Spinner(getContext());
         row.addView(spinner);
 
         ArrayList<String> spinnerValues = new ArrayList<>();
@@ -161,12 +166,27 @@ public class ClientReportDetailFragment extends MifosBaseFragment
                 tvLabel.setText("Office");
                 break;
         }
-
         ArrayAdapter adapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_item, spinnerValues);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (spinner.getTag().toString().equals("R_officeId") && fetchLoanOfficer) {
+                    int officeId = officeMap.get(spinner.getSelectedItem().toString());
+                    presenter.fetchOffices("loanOfficerIdSelectAll", officeId, true);
+                } else if (spinner.getTag().toString().equals("R_currencyId") && fetchLoanProduct) {
+                    String currencyId = currencyMap.get(spinner.getSelectedItem().toString());
+                    presenter.fetchProduct("loanProductIdSelectAll", currencyId, true);
+                }
+            }
 
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         tableDetails.addView(row);
     }
 
@@ -245,6 +265,45 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     }
 
     @Override
+    public void showOffices(FullParameterListResponse response, String identifier) {
+        for (int i = 0; i < tableDetails.getChildCount(); i++) {
+            TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
+            Spinner sp = (Spinner) tableRow.getChildAt(1);
+            if (sp.getTag().toString().equals("R_loanOfficerId")) {
+                ArrayList<String> spinnerValues = new ArrayList<>();
+                loanOfficerMap = presenter.filterIntHashMapForSpinner(response.getData(),
+                        spinnerValues);
+                ArrayAdapter adapter = new ArrayAdapter<>(getActivity(),
+                        android.R.layout.simple_spinner_item, spinnerValues);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                sp.setAdapter(adapter);
+                return;
+            }
+        }
+        addTableRow(response, identifier);
+
+    }
+
+    @Override
+    public void showProduct(FullParameterListResponse response, String identifier) {
+        for (int i = 0; i < tableDetails.getChildCount(); i++) {
+            TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
+            Spinner sp = (Spinner) tableRow.getChildAt(1);
+            if (sp.getTag().toString().equals("R_loanProductId")) {
+                ArrayList<String> spinnerValues = new ArrayList<>();
+                loanProductMap = presenter.filterIntHashMapForSpinner(response.getData(),
+                        spinnerValues);
+                ArrayAdapter adapter = new ArrayAdapter<>(getActivity(),
+                        android.R.layout.simple_spinner_item, spinnerValues);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                sp.setAdapter(adapter);
+                return;
+            }
+        }
+        addTableRow(response, identifier);
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_runreport, menu);
         super.onCreateOptionsMenu(menu, inflater);
@@ -268,6 +327,14 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     @Override
     public void showFullParameterResponse(FullParameterListResponse response) {
         for (DataRow row : response.getData()) {
+            switch (row.getRow().get(0)) {
+                case "loanOfficerIdSelectAll":
+                    fetchLoanOfficer = true;
+                    break;
+                case "loanProductIdSelectAll":
+                    fetchLoanProduct = true;
+                    break;
+            }
             presenter.fetchParameterDetails(row.getRow().get(0), true);
         }
     }

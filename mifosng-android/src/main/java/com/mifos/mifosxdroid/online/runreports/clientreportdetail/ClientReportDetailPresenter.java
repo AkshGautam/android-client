@@ -122,6 +122,76 @@ public class ClientReportDetailPresenter extends BasePresenter<ClientReportDetai
                 }));
     }
 
+    public void fetchOffices(final String parameterName, int officeId, boolean parameterType) {
+        checkViewAttached();
+        getMvpView().showProgressbar(true);
+        subscription.add(dataManager.getRunReportOffices(parameterName, officeId, parameterType)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Subscriber<FullParameterListResponse>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        getMvpView().showProgressbar(false);
+                        try {
+                            if (e instanceof HttpException) {
+                                String errorMessage = ((HttpException) e).response().errorBody()
+                                        .string();
+                                getMvpView().showError(MFErrorParser.parseError(errorMessage)
+                                        .getErrors().get(0).getDeveloperMessage());
+                            }
+                        } catch (Throwable throwable) {
+                            RxJavaPlugins.getInstance().getErrorHandler().handleError(e);
+                        }
+                    }
+
+                    @Override
+                    public void onNext(FullParameterListResponse response) {
+                        getMvpView().showProgressbar(false);
+                        getMvpView().showOffices(response, parameterName);
+                    }
+                }));
+    }
+
+    public void fetchProduct(final String parameterName, String currencyId, boolean parameterType) {
+        checkViewAttached();
+        getMvpView().showProgressbar(true);
+        subscription.add(dataManager.getRunReportProduct(parameterName, currencyId, parameterType)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Subscriber<FullParameterListResponse>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        getMvpView().showProgressbar(false);
+                        try {
+                            if (e instanceof HttpException) {
+                                String errorMessage = ((HttpException) e).response().errorBody()
+                                        .string();
+                                getMvpView().showError(MFErrorParser.parseError(errorMessage)
+                                        .getErrors().get(0).getDeveloperMessage());
+                            }
+                        } catch (Throwable throwable) {
+                            RxJavaPlugins.getInstance().getErrorHandler().handleError(e);
+                        }
+                    }
+
+                    @Override
+                    public void onNext(FullParameterListResponse response) {
+                        getMvpView().showProgressbar(false);
+                        getMvpView().showProduct(response, parameterName);
+                    }
+                }));
+    }
+
     public void fetchRunReportWithQuery(String reportName, Map<String, String> options) {
         checkViewAttached();
         getMvpView().showProgressbar(true);

@@ -16,4 +16,8 @@ public interface ClientReportDetailMvpView extends MvpView {
     void showParameterDetails(FullParameterListResponse response, String identifier);
 
     void showRunReport(FullParameterListResponse response);
+
+    void showOffices(FullParameterListResponse response, String identifier);
+
+    void showProduct(FullParameterListResponse response, String identifier);
 }

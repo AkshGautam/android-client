@@ -13,11 +13,11 @@ import android.view.ViewGroup;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.mifos.mifosxdroid.R;
 import com.mifos.mifosxdroid.core.MifosBaseActivity;
 import com.mifos.mifosxdroid.core.MifosBaseFragment;
-import com.mifos.mifosxdroid.core.util.Toaster;
 import com.mifos.objects.runreports.ColumnHeader;
 import com.mifos.objects.runreports.DataRow;
 import com.mifos.objects.runreports.FullParameterListResponse;
@@ -80,7 +80,7 @@ public class ClientReportFragment extends MifosBaseFragment implements ClientRep
         if (report.getData().size() > 0) {
             setUpValues();
         } else {
-            Toaster.show(rootView, getString(R.string.msg_report_empty));
+            Toast.makeText(getActivity(), getString(R.string.msg_report_empty), Toast.LENGTH_SHORT);
         }
         showProgressbar(false);
     }
