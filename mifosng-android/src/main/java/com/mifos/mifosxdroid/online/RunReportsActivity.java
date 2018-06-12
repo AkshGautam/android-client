@@ -9,7 +9,7 @@ import android.widget.Spinner;
 
 import com.mifos.mifosxdroid.R;
 import com.mifos.mifosxdroid.core.MifosBaseActivity;
-import com.mifos.mifosxdroid.online.runreports.clientreportcategory.ClientReportCategoryFragment;
+import com.mifos.mifosxdroid.online.runreports.reportcategory.ReportCategoryFragment;
 
 /**
  * Created by Tarun on 02-08-17.
@@ -34,7 +34,6 @@ public class RunReportsActivity extends MifosBaseActivity
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(this);
-
         toolbar.addView(spinner);
     }
 
@@ -42,10 +41,9 @@ public class RunReportsActivity extends MifosBaseActivity
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         switch (i) {
             case 0: //Clients
-                ClientReportCategoryFragment fragment = new
-                        ClientReportCategoryFragment();
-                replaceFragment(fragment, false, R.id.container);
+                replaceFragment(new ReportCategoryFragment(),false,R.id.container);
                 break;
+
             case 1:
                 break;
 

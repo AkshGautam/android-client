@@ -1,4 +1,4 @@
-package com.mifos.mifosxdroid.online.runreports.clientreport;
+package com.mifos.mifosxdroid.online.runreports.report;
 
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -32,22 +32,22 @@ import butterknife.ButterKnife;
  * Created by Tarun on 05-08-17.
  */
 
-public class ClientReportFragment extends MifosBaseFragment implements ClientReportMvpView {
+public class ReportFragment extends MifosBaseFragment implements ReportMvpView {
 
     @BindView(R.id.table_report)
     TableLayout tableReport;
 
     @Inject
-    ClientReportPresenter presenter;
+    ReportPresenter presenter;
 
     private View rootView;
     private FullParameterListResponse report;
 
-    public ClientReportFragment() {
+    public ReportFragment() {
     }
 
-    public static ClientReportFragment newInstance(Bundle args) {
-        ClientReportFragment fragment = new ClientReportFragment();
+    public static ReportFragment newInstance(Bundle args) {
+        ReportFragment fragment = new ReportFragment();
         fragment.setArguments(args);
         return fragment;
     }

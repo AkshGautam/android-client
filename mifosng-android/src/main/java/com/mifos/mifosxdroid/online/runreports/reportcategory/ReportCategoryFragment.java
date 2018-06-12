@@ -1,4 +1,4 @@
-package com.mifos.mifosxdroid.online.runreports.clientreportcategory;
+package com.mifos.mifosxdroid.online.runreports.reportcategory;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -16,7 +16,7 @@ import com.mifos.mifosxdroid.core.MifosBaseActivity;
 import com.mifos.mifosxdroid.core.MifosBaseFragment;
 import com.mifos.mifosxdroid.core.RecyclerItemClickListener;
 import com.mifos.mifosxdroid.core.util.Toaster;
-import com.mifos.mifosxdroid.online.runreports.clientreportdetail.ClientReportDetailFragment;
+import com.mifos.mifosxdroid.online.runreports.reportdetail.ReportDetailFragment;
 import com.mifos.objects.runreports.client.ClientReportTypeItem;
 import com.mifos.utils.Constants;
 
@@ -31,15 +31,15 @@ import butterknife.ButterKnife;
  * Created by Tarun on 02-08-17.
  */
 
-public class ClientReportCategoryFragment extends MifosBaseFragment
-        implements ClientReportCategoryMvpView,
+public class ReportCategoryFragment extends MifosBaseFragment
+        implements ReportCategoryMvpView,
         RecyclerItemClickListener.OnItemClickListener {
 
     @BindView(R.id.recycler_report)
     RecyclerView rvReports;
 
     @Inject
-    ClientReportCategoryPresenter presenter;
+    ReportCategoryPresenter presenter;
 
     @Inject
     ClientReportAdapter reportAdapter;
@@ -47,10 +47,13 @@ public class ClientReportCategoryFragment extends MifosBaseFragment
     private View rootView;
     private List<ClientReportTypeItem> reportTypeItems;
 
-    public ClientReportCategoryFragment() {}
 
-    public static ClientReportCategoryFragment newInstance() {
-        ClientReportCategoryFragment fragment = new ClientReportCategoryFragment();
+    public ReportCategoryFragment() {
+    }
+
+
+    public static ReportCategoryFragment newInstance() {
+        ReportCategoryFragment fragment = new ReportCategoryFragment();
         Bundle bundle = new Bundle();
         fragment.setArguments(bundle);
         return fragment;
@@ -70,8 +73,7 @@ public class ClientReportCategoryFragment extends MifosBaseFragment
         setHasOptionsMenu(true);
         ButterKnife.bind(this, rootView);
         presenter.attachView(this);
-
-        presenter.fetchCategories("Client", false, true);
+        presenter.fetchCategories("Loan", false, true);
 
         return rootView;
     }
@@ -114,7 +116,7 @@ public class ClientReportCategoryFragment extends MifosBaseFragment
                 .getSupportFragmentManager().beginTransaction();
         fragmentTransaction.addToBackStack("ClientCategory");
         fragmentTransaction.replace(R.id.container,
-                ClientReportDetailFragment.newInstance(bundle)).commit();
+                ReportDetailFragment.newInstance(bundle)).commit();
     }
 
     @Override

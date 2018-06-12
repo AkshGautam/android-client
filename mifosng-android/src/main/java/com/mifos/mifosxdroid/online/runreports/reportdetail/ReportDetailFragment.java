@@ -1,7 +1,8 @@
-package com.mifos.mifosxdroid.online.runreports.clientreportdetail;
+package com.mifos.mifosxdroid.online.runreports.reportdetail;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -21,13 +23,18 @@ import com.mifos.mifosxdroid.R;
 import com.mifos.mifosxdroid.core.MifosBaseActivity;
 import com.mifos.mifosxdroid.core.MifosBaseFragment;
 import com.mifos.mifosxdroid.core.util.Toaster;
-import com.mifos.mifosxdroid.online.runreports.clientreport.ClientReportFragment;
+import com.mifos.mifosxdroid.online.runreports.report.ReportFragment;
+import com.mifos.mifosxdroid.uihelpers.MFDatePicker;
 import com.mifos.objects.runreports.DataRow;
 import com.mifos.objects.runreports.FullParameterListResponse;
 import com.mifos.objects.runreports.client.ClientReportTypeItem;
 import com.mifos.utils.Constants;
+import com.mifos.utils.FragmentConstants;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,8 +47,8 @@ import butterknife.ButterKnife;
  * Created by Tarun on 04-08-17.
  */
 
-public class ClientReportDetailFragment extends MifosBaseFragment
-        implements ClientReportDetailMvpView {
+public class ReportDetailFragment extends MifosBaseFragment
+        implements ReportDetailMvpView, MFDatePicker.OnDatePickListener {
 
     @BindView(R.id.tv_report_name)
     TextView tvReportName;
@@ -56,7 +63,7 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     TableLayout tableDetails;
 
     @Inject
-    ClientReportDetailPresenter presenter;
+    ReportDetailPresenter presenter;
 
     private View rootView;
     private ClientReportTypeItem reportItem;
@@ -69,13 +76,24 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     private HashMap<String, Integer> loanProductMap;
     private HashMap<String, Integer> loanPurposeMap;
     private HashMap<String, Integer> officeMap;
+    private HashMap<String, Integer> parMap;
+    private HashMap<String, Integer> subStatusMap;
+    private HashMap<String, Integer> glAccountNoMap;
+    private HashMap<String, Integer> obligDateTypeMap;
     private HashMap<String, String> currencyMap;
 
-    public ClientReportDetailFragment() {
+    private String dateField;
+    public DialogFragment datePicker;
+
+    private EditText tvField;
+
+    public ReportDetailFragment() {
     }
 
-    public static ClientReportDetailFragment newInstance(Bundle args) {
-        ClientReportDetailFragment fragment = new ClientReportDetailFragment();
+
+
+    public static ReportDetailFragment newInstance(Bundle args) {
+        ReportDetailFragment fragment = new ReportDetailFragment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -108,6 +126,7 @@ public class ClientReportDetailFragment extends MifosBaseFragment
 
         String reportName = "'" + reportItem.getReportName() + "'";
         presenter.fetchFullParameterList(reportName, true);
+        datePicker = MFDatePicker.newInsance(this);
     }
 
     private void addTableRow(FullParameterListResponse data, String identifier) {
@@ -118,7 +137,6 @@ public class ClientReportDetailFragment extends MifosBaseFragment
         rowParams.gravity = Gravity.CENTER;
         rowParams.setMargins(0, 0, 0, 10);
         row.setLayoutParams(rowParams);
-
         TextView tvLabel = new TextView(getContext());
         row.addView(tvLabel);
 
@@ -165,6 +183,26 @@ public class ClientReportDetailFragment extends MifosBaseFragment
                 officeMap = presenter.filterIntHashMapForSpinner(data.getData(), spinnerValues);
                 tvLabel.setText("Office");
                 break;
+            case "parTypeSelect":
+                spinner.setTag("R_parType");
+                parMap = presenter.filterIntHashMapForSpinner(data.getData(), spinnerValues);
+                tvLabel.setText("PAR Calculation");
+                break;
+            case "SavingsAccountSubStatus":
+                spinner.setTag("R_subStatus");
+                subStatusMap = presenter.filterIntHashMapForSpinner(data.getData(), spinnerValues);
+                tvLabel.setText("SavingsAccDeposit");
+                break;
+            case "SelectGLAccountNO":
+                spinner.setTag("R_account");
+                glAccountNoMap = presenter.filterIntHashMapForSpinner(data.getData(), spinnerValues);
+                tvLabel.setText("GLAccountNO");
+                break;
+            case "obligDateTypeSelect":
+                spinner.setTag("R_obligDateType");
+                obligDateTypeMap = presenter.filterIntHashMapForSpinner(data.getData(), spinnerValues);
+                tvLabel.setText("Obligation date type");
+
         }
         ArrayAdapter adapter = new ArrayAdapter<>(getActivity(),
                 android.R.layout.simple_spinner_item, spinnerValues);
@@ -199,6 +237,10 @@ public class ClientReportDetailFragment extends MifosBaseFragment
             Integer loanProductId;
             Integer loanPurposeId;
             Integer officeId;
+            Integer parId;
+            Integer subId;
+            Integer obligId;
+            Integer glAccountId;
             String currencyId;
 
             Map<String, String> map = new HashMap<>();
@@ -209,44 +251,73 @@ public class ClientReportDetailFragment extends MifosBaseFragment
 
             for (int i = 0; i < tableDetails.getChildCount(); i++) {
                 TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
-                Spinner sp = (Spinner) tableRow.getChildAt(1);
-                switch (sp.getTag().toString()) {
-                    case "R_loanOfficerId":
-                        loanOfficeId = loanOfficerMap.get(sp.getSelectedItem().toString());
-                        if (loanOfficeId != -1) {
-                            map.put(sp.getTag().toString(), String.valueOf(loanOfficeId));
-                        }
-                        break;
-                    case "R_loanProductId":
-                        loanProductId = loanProductMap.get(sp.getSelectedItem().toString());
-                        if (loanProductId != -1) {
-                            map.put(sp.getTag().toString(), String.valueOf(loanProductId));
-                        }
-                        break;
-                    case "R_loanPurposeId":
-                        loanPurposeId = loanPurposeMap.get(sp.getSelectedItem().toString());
-                        if (loanPurposeId != -1) {
-                            map.put(sp.getTag().toString(), String.valueOf(loanPurposeId));
-                        }
-                        break;
-                    case "R_fundId":
-                        fundId = fundMap.get(sp.getSelectedItem().toString());
-                        if (fundId != -1) {
-                            map.put(sp.getTag().toString(), String.valueOf(fundId));
-                        }
-                        break;
-                    case "R_currencyId":
-                        currencyId = currencyMap.get(sp.getSelectedItem().toString());
-                        if (!currencyId.equals("")) {
-                            map.put(sp.getTag().toString(), currencyId);
-                        }
-                        break;
-                    case "R_officeId":
-                        officeId = officeMap.get(sp.getSelectedItem().toString());
-                        if (officeId != -1) {
-                            map.put(sp.getTag().toString(), String.valueOf(officeId));
-                        }
-                        break;
+                if (tableRow.getChildAt(1) instanceof Spinner) {
+                    Spinner sp = (Spinner) tableRow.getChildAt(1);
+                    switch (sp.getTag().toString()) {
+                        case "R_loanOfficerId":
+                            loanOfficeId = loanOfficerMap.get(sp.getSelectedItem().toString());
+                            if (loanOfficeId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(loanOfficeId));
+                            }
+                            break;
+                        case "R_loanProductId":
+                            loanProductId = loanProductMap.get(sp.getSelectedItem().toString());
+                            if (loanProductId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(loanProductId));
+                            }
+                            break;
+                        case "R_loanPurposeId":
+                            loanPurposeId = loanPurposeMap.get(sp.getSelectedItem().toString());
+                            if (loanPurposeId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(loanPurposeId));
+                            }
+                            break;
+                        case "R_fundId":
+                            fundId = fundMap.get(sp.getSelectedItem().toString());
+                            if (fundId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(fundId));
+                            }
+                            break;
+                        case "R_currencyId":
+                            currencyId = currencyMap.get(sp.getSelectedItem().toString());
+                            if (!currencyId.equals("")) {
+                                map.put(sp.getTag().toString(), currencyId);
+                            }
+                            break;
+                        case "R_officeId":
+                            officeId = officeMap.get(sp.getSelectedItem().toString());
+                            if (officeId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(officeId));
+                            }
+                            break;
+                        case "R_parType":
+                            parId = parMap.get(sp.getSelectedItem().toString());
+                            if (parId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(parId));
+                            }
+                            break;
+                        case "R_account":
+                            glAccountId = glAccountNoMap.get(sp.getSelectedItem().toString());
+                            if (glAccountId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(glAccountId));
+                            }
+                            break;
+                        case "R_subStatus":
+                            subId = subStatusMap.get(sp.getSelectedItem().toString());
+                            if (subId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(subId));
+                            }
+                            break;
+                        case "R_obligDateType":
+                            obligId = obligDateTypeMap.get(sp.getSelectedItem().toString());
+                            if (obligId != -1) {
+                                map.put(sp.getTag().toString(), String.valueOf(obligId));
+                            }
+                            break;
+                    }
+                } else if (tableRow.getChildAt(1) instanceof EditText) {
+                    EditText et = (EditText) tableRow.getChildAt(1);
+                    map.put(et.getTag().toString(), et.getText().toString());
                 }
             }
             presenter.fetchRunReportWithQuery(reportItem.getReportName(), map);
@@ -260,7 +331,7 @@ public class ClientReportDetailFragment extends MifosBaseFragment
         FragmentTransaction fragmentTransaction = getActivity()
                 .getSupportFragmentManager().beginTransaction();
         fragmentTransaction.addToBackStack("ClientDetails");
-        fragmentTransaction.replace(R.id.container, ClientReportFragment.newInstance(bundle))
+        fragmentTransaction.replace(R.id.container, ReportFragment.newInstance(bundle))
                 .commit();
     }
 
@@ -268,6 +339,9 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     public void showOffices(FullParameterListResponse response, String identifier) {
         for (int i = 0; i < tableDetails.getChildCount(); i++) {
             TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
+            if (tableRow.getChildAt(1) instanceof EditText) {
+                continue;
+            }
             Spinner sp = (Spinner) tableRow.getChildAt(1);
             if (sp.getTag().toString().equals("R_loanOfficerId")) {
                 ArrayList<String> spinnerValues = new ArrayList<>();
@@ -288,6 +362,9 @@ public class ClientReportDetailFragment extends MifosBaseFragment
     public void showProduct(FullParameterListResponse response, String identifier) {
         for (int i = 0; i < tableDetails.getChildCount(); i++) {
             TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
+            if (tableRow.getChildAt(1) instanceof EditText) {
+                continue;
+            }
             Spinner sp = (Spinner) tableRow.getChildAt(1);
             if (sp.getTag().toString().equals("R_loanProductId")) {
                 ArrayList<String> spinnerValues = new ArrayList<>();
@@ -334,9 +411,83 @@ public class ClientReportDetailFragment extends MifosBaseFragment
                 case "loanProductIdSelectAll":
                     fetchLoanProduct = true;
                     break;
+                case "startDateSelect":
+                    addTextView("startDateSelect");
+                    break;
+                case "endDateSelect":
+                    addTextView("endDateSelect");
+                    break;
+                case "selectAccount":
+                    addTextView("selectAccount");
+                    break;
+                case "fromXSelect":
+                    addTextView("fromXSelect");
+                    break;
+                case "toYSelect":
+                    addTextView("toYSelect");
+                    break;
+                case "overdueXSelect":
+                    addTextView("overdueXSelect");
+                    break;
+                case "overdueYSelect":
+                    addTextView("overdueYSelect");
+                    break;
             }
             presenter.fetchParameterDetails(row.getRow().get(0), true);
         }
+    }
+
+    private void addTextView(String identifier) {
+
+        TableRow row = new TableRow(getContext());
+        TableRow.LayoutParams rowParams = new TableRow.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        rowParams.gravity = Gravity.CENTER;
+        rowParams.setMargins(0, 0, 0, 10);
+        row.setLayoutParams(rowParams);
+        final TextView tvLabel = new TextView(getContext());
+        row.addView(tvLabel);
+        tvField = new EditText(getContext());
+        row.addView(tvField);
+        switch (identifier) {
+            case "startDateSelect":
+                tvField.setTag("R_startDate");
+                tvLabel.setText("Start Date");
+                break;
+            case "endDateSelect":
+                tvField.setTag("R_endDate");
+                tvLabel.setText("End Date");
+                break;
+            case "selectAccount":
+                tvField.setTag("R_accountNo");
+                tvLabel.setText("Enter Account No.");
+                break;
+            case "fromXSelect":
+                tvField.setTag("R_fromX");
+                tvLabel.setText("From X Number");
+                break;
+            case "toYSelect":
+                tvField.setTag("R_toY");
+                tvLabel.setText("To Y Number");
+                break;
+            case "overdueYSelect":
+                tvField.setTag("R_overdueX");
+                tvLabel.setText("Overdue X Number");
+                break;
+            case "overdueXSelect":
+                tvField.setTag("R_overdueY");
+                tvLabel.setText("Overdue Y Number");
+                break;
+        }
+        tvField.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dateField = v.getTag().toString();
+                datePicker.show(getActivity().getSupportFragmentManager(),
+                        FragmentConstants.DFRAG_DATE_PICKER);
+            }
+        });
+        tableDetails.addView(row);
     }
 
     @Override
@@ -350,6 +501,29 @@ public class ClientReportDetailFragment extends MifosBaseFragment
             showMifosProgressDialog();
         } else {
             hideMifosProgressDialog();
+        }
+    }
+
+    @Override
+    public void onDatePicked(String date) {
+        for (int i = 0; i < tableDetails.getChildCount(); i++) {
+            TableRow tableRow = (TableRow) tableDetails.getChildAt(i);
+            if (tableRow.getChildAt(1) instanceof Spinner) {
+                continue;
+            }
+            EditText et = (EditText) tableRow.getChildAt(1);
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            Date dateModified = null;
+            try {
+                dateModified = simpleDateFormat.parse(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+            if (et.getTag().toString() == dateField) {
+                et.setText(simpleDateFormat1.format(dateModified));
+                break;
+            }
         }
     }
 }

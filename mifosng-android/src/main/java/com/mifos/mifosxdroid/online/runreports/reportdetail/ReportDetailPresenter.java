@@ -1,4 +1,4 @@
-package com.mifos.mifosxdroid.online.runreports.clientreportdetail;
+package com.mifos.mifosxdroid.online.runreports.reportdetail;
 
 import com.mifos.api.datamanager.DataManagerRunReport;
 import com.mifos.mifosxdroid.base.BasePresenter;
@@ -26,19 +26,19 @@ import rx.subscriptions.CompositeSubscription;
  * Created by Tarun on 04-08-17.
  */
 
-public class ClientReportDetailPresenter extends BasePresenter<ClientReportDetailMvpView> {
+public class ReportDetailPresenter extends BasePresenter<ReportDetailMvpView> {
 
     private DataManagerRunReport dataManager;
     private CompositeSubscription subscription;
 
     @Inject
-    public ClientReportDetailPresenter(DataManagerRunReport dataManager) {
+    public ReportDetailPresenter(DataManagerRunReport dataManager) {
         this.dataManager = dataManager;
         subscription = new CompositeSubscription();
     }
 
     @Override
-    public void attachView(ClientReportDetailMvpView mvpView) {
+    public void attachView(ReportDetailMvpView mvpView) {
         super.attachView(mvpView);
     }
 
